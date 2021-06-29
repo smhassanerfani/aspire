@@ -1,3 +1,4 @@
 dataset/first_edition
 dataset/second_edition
 reports/*.png
+trained_models/*.pth
