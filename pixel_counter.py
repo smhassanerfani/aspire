@@ -3,8 +3,10 @@ from skimage import io
 import argparse
 import os
 
-DATA_DIRECTORY = "./reports/pspnet_results"
-FIELD_NAMES = ["name", "size", "river", "background"]
+DATA_DIRECTORY = "./reports/pspnet_imagenet"
+FIELD_NAMES = ["name", "size", "river", "background",
+               'mask_roi_13', 'mask_roi_12', 'river_roi_13', 'river_roi_12']
+# IMAGE_CROP = True
 
 
 def get_arguments():
@@ -15,6 +17,8 @@ def get_arguments():
                         help="Path to the directory containing the source of data.")
     parser.add_argument("--field-names", nargs='+', default=FIELD_NAMES,
                         help="List of the headers in .csv report.")
+    # parser.add_argument("--image-crop", , default=IMAGE_CROP,
+    #                     help="List of the headers in .csv report.")
 
     return parser.parse_args()
 
@@ -27,7 +31,7 @@ def csv_writer(input_list, output_path, names_list=None):
     if names_list is None:
         names_list = list()
 
-    csv_path = os.path.join(output_path, "output.csv")
+    csv_path = os.path.join(output_path, "output_roi.csv")
     with open(csv_path, 'w', newline='') as csvfile:
         csv_writer = csv.DictWriter(csvfile, fieldnames=names_list)
 
@@ -42,11 +46,17 @@ def pixel_counter(masks_dir):
         for image in files:
             if image.endswith(".png"):
                 mask = io.imread(os.path.join(root, image))
+                mask_roi_12 = mask[:, int(mask.shape[1] - mask.shape[1] / 2):]
+                mask_roi_13 = mask[:, int(mask.shape[1] - mask.shape[1] / 3):]
                 items_list.append({
                     "name": image,
                     "size": mask.shape,
                     "river": np.sum(mask == 255),
-                    "background": np.sum(mask == 0)
+                    "background": np.sum(mask == 0),
+                    "mask_roi_12": mask_roi_12.shape,
+                    "river_roi_12": np.sum(mask_roi_12 == 255),
+                    "mask_roi_13": mask_roi_13.shape,
+                    "river_roi_13": np.sum(mask_roi_13 == 255),
                 })
 
     return items_list
